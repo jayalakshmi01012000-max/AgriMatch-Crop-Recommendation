@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173f35">
+  <title>AgriMatch | Crop Recommendation</title>
+  <style>
+    :root {
+      --ink: #17352d;
+      --muted: #718078;
+      --cream: #f7f5ed;
+      --card: rgba(255, 255, 255, 0.94);
+      --green: #1f6d52;
+      --lime: #bddc75;
+      --line: #e5e9e2;
+      --orange: #ee9b45;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(189, 220, 117, 0.22), transparent 23rem),
+        radial-gradient(circle at 92% 82%, rgba(238, 155, 69, 0.12), transparent 24rem),
+        var(--cream);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 330px;
+      height: 330px;
+      border: 1px solid rgba(31, 109, 82, 0.08);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    body::before { left: -190px; bottom: -120px; box-shadow: 0 0 0 42px rgba(31, 109, 82, 0.025), 0 0 0 84px rgba(31, 109, 82, 0.018); }
+    body::after { right: -220px; top: -150px; box-shadow: 0 0 0 48px rgba(238, 155, 69, 0.018); }
+
+    .page {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 38px 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      animation: fadeDown .7s ease both;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -.4px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px 14px 14px 4px;
+      color: white;
+      background: var(--green);
+      box-shadow: 0 8px 22px rgba(31, 109, 82, .18);
+      transform: rotate(-4deg);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #68a85b;
+      box-shadow: 0 0 0 5px rgba(104, 168, 91, .12);
+      animation: pulse 2s infinite;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .panel {
+      border: 1px solid rgba(23, 53, 45, .07);
+      border-radius: 28px;
+      background: var(--card);
+      box-shadow: 0 24px 70px rgba(46, 76, 64, .11);
+      backdrop-filter: blur(12px);
+    }
+
+    .form-panel {
+      padding: 38px;
+      animation: riseIn .8s .08s cubic-bezier(.2,.75,.25,1) both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      background: var(--lime);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 620px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(38px, 5vw, 58px);
+      line-height: .98;
+      letter-spacing: -2.5px;
+    }
+
+    .intro {
+      max-width: 570px;
+      margin: 16px 0 28px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      position: relative;
+      animation: riseIn .55s cubic-bezier(.2,.75,.25,1) both;
+    }
+
+    .field:nth-child(1) { animation-delay: .16s; }
+    .field:nth-child(2) { animation-delay: .21s; }
+    .field:nth-child(3) { animation-delay: .26s; }
+    .field:nth-child(4) { animation-delay: .31s; }
+    .field:nth-child(5) { animation-delay: .36s; }
+    .field:nth-child(6) { animation-delay: .41s; }
+    .field:nth-child(7) { animation-delay: .46s; }
+
+    .field label {
+      display: block;
+      margin: 0 0 8px 2px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .field small {
+      display: block;
+      margin-top: 4px;
+      color: #98a49e;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .input-wrap { position: relative; }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a098;
+      font-size: 16px;
+      transition: color .2s, transform .2s;
+      pointer-events: none;
+    }
+
+    input {
+      width: 100%;
+      height: 52px;
+      padding: 0 14px 0 43px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      outline: none;
+      background: #fbfcf9;
+      color: var(--ink);
+      font: 700 15px/1 Inter, "Segoe UI", sans-serif;
+      transition: border-color .22s, box-shadow .22s, background .22s, transform .22s;
+    }
+
+    input:focus {
+      border-color: rgba(31, 109, 82, .55);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(31, 109, 82, .08), 0 8px 18px rgba(31, 109, 82, .05);
+      transform: translateY(-1px);
+    }
+
+    .input-wrap:focus-within .input-icon {
+      color: var(--green);
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .actions {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 7px;
+    }
+
+    button {
+      min-width: 220px;
+      height: 56px;
+      border: 0;
+      border-radius: 16px;
+      color: white;
+      background: var(--green);
+      box-shadow: 0 13px 30px rgba(31, 109, 82, .23);
+      font: 800 14px/1 Inter, "Segoe UI", sans-serif;
+      cursor: pointer;
+      transition: transform .22s, box-shadow .22s, background .22s;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      background: #185d46;
+      box-shadow: 0 18px 36px rgba(31, 109, 82, .29);
+    }
+
+    button:active { transform: translateY(-1px) scale(.985); }
+
+    .button-arrow {
+      display: inline-block;
+      margin-left: 10px;
+      transition: transform .22s;
+    }
+
+    button:hover .button-arrow { transform: translateX(5px); }
+
+    .clear {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: #ccd4ce;
+      text-underline-offset: 4px;
+    }
+
+    .insight {
+      position: relative;
+      min-height: 100%;
+      padding: 28px;
+      overflow: hidden;
+      background:
+        linear-gradient(145deg, rgba(23, 63, 53, .98), rgba(32, 95, 73, .96));
+      color: white;
+      animation: riseIn .8s .18s cubic-bezier(.2,.75,.25,1) both;
+    }
+
+    .insight::before {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -130px;
+      bottom: -150px;
+      border: 1px solid rgba(189, 220, 117, .15);
+      border-radius: 50%;
+      box-shadow: 0 0 0 34px rgba(189, 220, 117, .025), 0 0 0 68px rgba(189, 220, 117, .018);
+    }
+
+    .insight-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .insight-header span {
+      color: rgba(255,255,255,.68);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .seed {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .empty-state {
+      display: flex;
+      min-height: 410px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .orbit {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 150px;
+      height: 150px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(189, 220, 117, .16);
+      border-radius: 50%;
+    }
+
+    .orbit::before,
+    .orbit::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 50%;
+    }
+
+    .orbit::before { width: 112px; height: 112px; }
+    .orbit::after { width: 74px; height: 74px; }
+
+    .orbit-leaf {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50% 50% 50% 12%;
+      background: var(--lime);
+      color: var(--green);
+      font-size: 28px;
+      transform: rotate(-12deg);
+      box-shadow: 0 12px 28px rgba(189, 220, 117, .16);
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    .empty-state h2 {
+      margin: 0 0 8px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 25px;
+    }
+
+    .empty-state p {
+      max-width: 260px;
+      margin: 0;
+      color: rgba(255,255,255,.62);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .result-view { position: relative; z-index: 1; }
+
+    .match-label {
+      margin: 46px 0 8px;
+      color: var(--lime);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .crop-name {
+      margin: 0 0 24px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 43px;
+      line-height: 1;
+      text-transform: capitalize;
+    }
+
+    .ranking { display: grid; gap: 12px; }
+
+    .rank {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 15px;
+      background: rgba(255,255,255,.07);
+      animation: slideLeft .5s both;
+    }
+
+    .rank:nth-child(2) { animation-delay: .08s; }
+    .rank:nth-child(3) { animation-delay: .16s; }
+
+    .rank-number {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: rgba(189, 220, 117, .12);
+      color: var(--lime);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+    }
+
+    .rank-name {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+
+    .rank-bar {
+      grid-column: 2 / -1;
+      height: 4px;
+      margin-top: -4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+
+    .rank-bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--lime);
+      transform-origin: left;
+      animation: growBar 1s .35s cubic-bezier(.2,.75,.25,1) both;
+    }
+
+    .rank-percent {
+      color: rgba(255,255,255,.78);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .error {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      color: #9d3d32;
+      background: #fff1ed;
+      border: 1px solid #f4d5cd;
+      font-size: 13px;
+      font-weight: 700;
+      animation: shake .42s ease;
+    }
+
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+    @keyframes riseIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    @keyframes slideLeft { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+    @keyframes growBar { from { width: 0; } }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 8px rgba(104, 168, 91, 0); } }
+    @keyframes float { 50% { transform: translateY(-7px) rotate(3deg); } }
+    @keyframes breathe { 50% { transform: rotate(-12deg) scale(1.08); } }
+    @keyframes shake { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .insight { min-height: 360px; }
+      .empty-state { min-height: 300px; }
+    }
+
+    @media (max-width: 620px) {
+      .page { width: min(100% - 24px, 1120px); padding: 20px 0; }
+      .topbar { margin-bottom: 18px; }
+      .status { display: none; }
+      .form-panel { padding: 24px 18px; border-radius: 22px; }
+      h1 { font-size: 38px; letter-spacing: -1.5px; }
+      .intro { margin-bottom: 22px; }
+      form { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; align-items: stretch; }
+      button { width: 100%; }
+      .clear { min-height: 38px; }
+      .insight { border-radius: 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">♧</span>
+        <span>AgriMatch</span>
+      </div>
+      <div class="status"><span class="status-dot"></span> Smart recommendation</div>
+    </header>
+
+    <section class="hero">
+      <article class="panel form-panel">
+        <div class="eyebrow">Field intelligence</div>
+        <h1>Find the right crop for your land.</h1>
+        <p class="intro">Enter your soil nutrients and local climate details to receive a confident crop recommendation.</p>
+
+        <form method="post" id="crop-form">
+          {% set hints = {"N":"Nitrogen level","P":"Phosphorus level","K":"Potassium level","temperature":"Degrees Celsius","humidity":"Relative humidity","ph":"Acidity level","rainfall":"Millimeters"} %}
+          {% set icons = {"N":"N","P":"P","K":"K","temperature":"°","humidity":"◌","ph":"pH","rainfall":"↧"} %}
+          {% for f in features %}
+          <div class="field">
+            <label for="{{ f }}">{{ f }} <small>{{ hints[f] }}</small></label>
+            <div class="input-wrap">
+              <span class="input-icon">{{ icons[f] }}</span>
+              <input id="{{ f }}" name="{{ f }}" type="number" step="any" required value="{{ form.get(f, '') }}" placeholder="Enter value">
+            </div>
+          </div>
+          {% endfor %}
+
+          {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+          <div class="actions">
+            <button type="submit" id="recommend-button">Analyze field <span class="button-arrow">→</span></button>
+            <button type="reset" class="clear">Clear all</button>
+          </div>
+        </form>
+      </article>
+
+      <aside class="panel insight">
+        <div class="insight-header">
+          <span>Crop insight</span>
+          <span class="seed">✦</span>
+        </div>
+
+        {% if results %}
+        <div class="result-view">
+          <p class="match-label">Best match</p>
+          <h2 class="crop-name">{{ results[0].crop }}</h2>
+          <div class="ranking">
+            {% for r in results %}
+            <div class="rank">
+              <span class="rank-number">{{ loop.index }}</span>
+              <span class="rank-name">{{ r.crop }}</span>
+              <span class="rank-percent">{{ (r.probability * 100)|round(1) }}%</span>
+              <div class="rank-bar"><i style="width: {{ (r.probability * 100)|round(1) }}%"></i></div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="orbit"><div class="orbit-leaf">⌁</div></div>
+          <h2>Ready to grow</h2>
+          <p>Your top crop matches will appear here after field analysis.</p>
+        </div>
+        {% endif %}
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("crop-form");
+    const button = document.getElementById("recommend-button");
+
+    form.addEventListener("submit", () => {
+      button.innerHTML = "Analyzing field <span class=\"button-arrow\">•••</span>";
+      button.disabled = true;
+    });
+
+    form.addEventListener("reset", () => {
+      window.setTimeout(() => form.querySelector("input")?.focus(), 0);
+    });
+  </script>
+</body>
+</html>
